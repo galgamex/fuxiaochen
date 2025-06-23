@@ -4,10 +4,7 @@ import "dayjs/locale/zh-cn";
 import relativeTime from "dayjs/plugin/relativeTime";
 import slugify from "slugify";
 import { twMerge } from "tailwind-merge";
-<<<<<<< HEAD
 import bcrypt from "bcryptjs";
-=======
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 
 import { showErrorToast, showSuccessToast } from "@/components/ui/toast";
 
@@ -114,7 +111,6 @@ export const isBrowser = () => {
     window.document.createElement
   );
 };
-<<<<<<< HEAD
 
 /**
  * 加密密码
@@ -148,5 +144,3 @@ export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
-=======
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0

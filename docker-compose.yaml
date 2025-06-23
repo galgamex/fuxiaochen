@@ -1,5 +1,4 @@
 services:
-<<<<<<< HEAD
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -13,42 +12,16 @@ services:
       - POSTGRES_PASSWORD=123456
     volumes:
       - postgres_data:/var/lib/postgresql/data
-=======
-  mysql8:
-    image: mysql:8
-    restart: unless-stopped
-    environment:
-      # 方法一：设置时区为上海
-      - TZ=Asia/Shanghai
-      # - SET_CONTAINER_TIMEZONE=true # 方法二： 设置时区为上海
-      # - CONTAINER_TIMEZONE=Asia/Shanghai # 方法二： 设置时区为上海
-      # mysql启动时自动创建数据库
-      - MYSQL_DATABASE=fuxiaochen
-      # 设置root账户密码
-      - MYSQL_ROOT_PASSWORD=123456
-    volumes:
-      - mysql8_data:/data/db
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
     # 和本机共享网络，设置了host模式的网络，就不需要暴露端口了，因为是和主机共享了
     # network_mode: 'host'
     # 设置了host模式的网络，就不需要暴露端口了，因为是和主机共享了
     ports:
-<<<<<<< HEAD
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
-=======
-      - "3306:3306"
-    command: [
-        "mysqld",
-        # 设置字符编码
-        "--character-set-server=utf8mb4",
-        "--collation-server=utf8mb4_unicode_ci",
-      ]
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 
   umami:
     image: ghcr.io/umami-software/umami:postgresql-latest
@@ -84,9 +57,5 @@ services:
       retries: 5
 
 volumes:
-<<<<<<< HEAD
   postgres_data:
-=======
-  mysql8_data:
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
   umami_db_data:

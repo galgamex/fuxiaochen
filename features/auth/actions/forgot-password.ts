@@ -37,7 +37,7 @@ export const sendPasswordResetEmail = async (email: string) => {
     });
 
     // 发送重置邮件
-    const emailHtml = generatePasswordResetEmailHtml(user.name || "用户", resetCode);
+    const emailHtml = generatePasswordResetEmailHtml(user.name ?? "用户", resetCode);
     const emailResult = await sendEmail({
       to: email,
       subject: "密码重置 - 重置您的密码",

@@ -11,15 +11,9 @@ generator client {
 //   url      = env("DATABASE_URL")
 // }
 
-<<<<<<< HEAD
 // 使用 postgresql 作为数据库
 datasource db {
   provider = "postgresql"
-=======
-// 使用 mysql 作为数据库
-datasource db {
-  provider = "mysql"
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
   url      = env("DATABASE_URL")
 }
 
@@ -57,7 +51,6 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-<<<<<<< HEAD
   
   // 邮箱验证相关字段
   emailVerificationCode     String?
@@ -67,8 +60,6 @@ model User {
   passwordResetCode         String?
   passwordResetExpires      DateTime?
   
-=======
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
   accounts      Account[]
   sessions      Session[]
 }

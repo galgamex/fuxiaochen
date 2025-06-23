@@ -97,7 +97,7 @@ export const resendVerificationEmail = async (email: string) => {
     });
 
     // 发送验证邮件
-    const emailHtml = generateVerificationEmailHtml(user.name || "用户", verificationCode);
+    const emailHtml = generateVerificationEmailHtml(user.name ?? "用户", verificationCode);
     const emailResult = await sendEmail({
       to: email,
       subject: "邮箱验证 - 请验证您的邮箱地址",

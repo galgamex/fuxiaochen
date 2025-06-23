@@ -75,11 +75,8 @@
     "next-auth": "5.0.0-beta.25",
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.3.0",
-<<<<<<< HEAD
     "nodemailer": "^6.9.8",
     "pg": "^8.12.0",
-=======
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.53.1",
@@ -90,11 +87,7 @@
     "rehype-autolink-headings": "^7.1.0",
     "rehype-highlight": "^7.0.0",
     "rehype-slug": "^6.0.0",
-<<<<<<< HEAD
     "sharp": "^0.33.5",
-=======
-    "sharp": "^0.32.2",
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
     "slugify": "^1.6.6",
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6",
@@ -118,11 +111,8 @@
     "@types/eslint": "^9.6.1",
     "@types/lodash-es": "^4.17.8",
     "@types/node": "20.3.3",
-<<<<<<< HEAD
     "@types/nodemailer": "^6.4.14",
     "@types/pg": "^8.11.10",
-=======
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
     "@types/qs": "^6.9.7",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",

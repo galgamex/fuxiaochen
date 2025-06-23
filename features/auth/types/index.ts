@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-<<<<<<< HEAD
 // 登录表单验证
 export const signInFormSchema = z.object({
   email: z
@@ -88,19 +87,7 @@ export const resetPasswordFormSchema = z.object({
 });
 
 export type ResetPasswordFormData = z.infer<typeof resetPasswordFormSchema>;
-=======
-export const signupSchema = z.object({
-  name: z.string().min(1, { message: "长度不能少于1个字符" }),
-  email: z.string().email().min(1, { message: "长度不能少于1个字符" }),
-  password: z.string().min(1, { message: "长度不能少于1个字符" }),
-});
 
-export type SignupDTO = z.infer<typeof signupSchema>;
-
-export const signInSchema = z.object({
-  email: z.string().email().min(1, { message: "长度不能少于1个字符" }),
-  password: z.string().min(1, { message: "长度不能少于1个字符" }),
-});
-
-export type SignInDTO = z.infer<typeof signInSchema>;
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
+// 为了向后兼容，添加别名
+export const signupSchema = signUpFormSchema;
+export type SignupDTO = SignUpFormData;

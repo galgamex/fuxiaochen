@@ -1,6 +1,5 @@
 "use server";
 
-<<<<<<< HEAD
 import { signIn } from "@/lib/auth";
 import { z } from "zod";
 import { signInFormSchema } from "../types";
@@ -20,7 +19,7 @@ export async function signInWithEmail(values: z.infer<typeof signInFormSchema>) 
     const { email, password } = validatedFields.data;
 
     try {
-      const result = await signIn("credentials", {
+      await signIn("credentials", {
         email,
         password,
         redirect: false,
@@ -56,19 +55,3 @@ export async function signInWithEmail(values: z.infer<typeof signInFormSchema>) 
     };
   }
 }
-=======
-import { PATHS } from "@/constants";
-import { signIn } from "@/lib/auth";
-
-export const signInWithGithub = async () => {
-  await signIn("github", {
-    redirectTo: PATHS.ADMIN_HOME,
-  });
-};
-
-export const signInWithGoogle = async () => {
-  await signIn("google", {
-    redirectTo: PATHS.ADMIN_HOME,
-  });
-};
->>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0

@@ -39,7 +39,7 @@ export const VerifyEmailPage = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isResending, setIsResending] = React.useState(false);
 
-  const emailFromUrl = searchParams.get("email") || "";
+  const emailFromUrl = searchParams.get("email") ?? "";
 
   const form = useForm<VerifyEmailFormData>({
     resolver: zodResolver(verifyEmailFormSchema),
@@ -55,10 +55,10 @@ export const VerifyEmailPage = () => {
       const result = await verifyEmail(data);
       
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message ?? "验证成功");
         router.push(PATHS.AUTH_SIGN_IN);
       } else {
-        toast.error(result.error);
+        toast.error(result.error ?? "验证失败");
       }
     } catch (error) {
       console.error("验证失败:", error);
