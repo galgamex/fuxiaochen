@@ -25,10 +25,13 @@ export const PATHS = {
 
   /** ************* AUTH ****************** */
   AUTH_SIGN_IN: "/auth/sign_in",
+<<<<<<< HEAD
   AUTH_SIGN_UP: "/auth/sign_up",
   AUTH_VERIFY_EMAIL: "/auth/verify_email",
   AUTH_FORGOT_PASSWORD: "/auth/forgot_password",
   AUTH_RESET_PASSWORD: "/auth/reset_password",
+=======
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
   NEXT_AUTH_SIGN_IN: "/api/auth/sign_in",
 };
 
@@ -54,10 +57,13 @@ export const PATHS_MAP: Record<string, string> = {
 
   /** ************* AUTH ****************** */
   [PATHS.AUTH_SIGN_IN]: "登录",
+<<<<<<< HEAD
   [PATHS.AUTH_SIGN_UP]: "注册",
   [PATHS.AUTH_VERIFY_EMAIL]: "邮箱验证",
   [PATHS.AUTH_FORGOT_PASSWORD]: "忘记密码",
   [PATHS.AUTH_RESET_PASSWORD]: "重置密码",
+=======
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 };
 
 export const PATH_DESCRIPTION_MAP: Record<string, string> = {
@@ -83,8 +89,11 @@ export const PATH_DESCRIPTION_MAP: Record<string, string> = {
 
   /** ************* AUTH ****************** */
   [PATHS.AUTH_SIGN_IN]: "登录",
+<<<<<<< HEAD
   [PATHS.AUTH_SIGN_UP]: "注册",
   [PATHS.AUTH_VERIFY_EMAIL]: "邮箱验证",
   [PATHS.AUTH_FORGOT_PASSWORD]: "忘记密码",
   [PATHS.AUTH_RESET_PASSWORD]: "重置密码",
+=======
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 };

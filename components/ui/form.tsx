@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 const Form = FormProvider;
 
+<<<<<<< HEAD
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
@@ -29,6 +30,22 @@ const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFi
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+=======
+interface FormFieldContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+> {
+  name: TName;
+}
+
+const FormFieldContext = React.createContext<FormFieldContextValue>(
+  {} as FormFieldContextValue,
+);
+
+const FormField = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 >({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
@@ -62,11 +79,21 @@ const useFormField = () => {
   };
 };
 
+<<<<<<< HEAD
 type FormItemContextValue = {
   id: string;
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue);
+=======
+interface FormItemContextValue {
+  id: string;
+}
+
+const FormItemContext = React.createContext<FormItemContextValue>(
+  {} as FormItemContextValue,
+);
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 
 const FormItem = React.forwardRef<
   HTMLDivElement,
@@ -83,8 +110,13 @@ const FormItem = React.forwardRef<
 FormItem.displayName = "FormItem";
 
 const FormLabel = React.forwardRef<
+<<<<<<< HEAD
   React.ElementRef<typeof Label>,
   React.ComponentPropsWithoutRef<typeof Label>
+=======
+  React.ComponentRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 >(({ className, ...props }, ref) => {
   const { error, formItemId } = useFormField();
 
@@ -100,19 +132,31 @@ const FormLabel = React.forwardRef<
 FormLabel.displayName = "FormLabel";
 
 const FormControl = React.forwardRef<
+<<<<<<< HEAD
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
+=======
+  React.ComponentRef<typeof Slot>,
+  React.ComponentPropsWithoutRef<typeof Slot>
+>(({ ...props }, ref) => {
+  const { error, formItemId, formDescriptionId, formMessageId } =
+    useFormField();
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 
   return (
     <Slot
       ref={ref}
       id={formItemId}
       aria-describedby={
+<<<<<<< HEAD
         !error
           ? `${formDescriptionId}`
           : `${formDescriptionId} ${formMessageId}`
+=======
+        !error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
       }
       aria-invalid={!!error}
       {...props}
@@ -143,7 +187,11 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
+<<<<<<< HEAD
   const body = error ? String(error?.message) : children;
+=======
+  const body = error ? String(error.message) : children;
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 
   if (!body) {
     return null;
@@ -169,6 +217,11 @@ export {
   FormLabel,
   FormControl,
   FormDescription,
+<<<<<<< HEAD
   FormField,
   FormMessage,
+=======
+  FormMessage,
+  FormField,
+>>>>>>> 65d1fdd994ea331c20263c70f824dc1d644ebec0
 };
