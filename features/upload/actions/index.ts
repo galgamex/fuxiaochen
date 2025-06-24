@@ -1,151 +1,194 @@
 "use server";
 
-import imageType, { minimumBytes } from "image-type";
-import fs from "node:fs";
-import path from "node:path";
-import { readChunk } from "read-chunk";
-import sharp from "sharp";
+import { Upload } from "@aws-sdk/lib-storage";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import { OSS_UPLOAD_DIR } from "@/config";
+// 验证环境变量
+function validateEnvVars() {
+  const required = [
+    'AWS_REGION',
+    'AWS_ACCESS_KEY_ID', 
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_S3_BUCKET_NAME',
+    'AWS_S3_ENDPOINT',
+    'NEXT_PUBLIC_S3_STORAGE_URL'
+  ];
+  
+  const missing = required.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(`缺少必要的环境变量: ${missing.join(', ')}`);
+  }
+}
 
-import { isProduction } from "@/utils/env";
+// 初始化S3客户端
+function createS3Client() {
+  validateEnvVars();
+  
+  return new S3Client({
+    region: process.env.AWS_REGION!,
+    endpoint: process.env.AWS_S3_ENDPOINT,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+    forcePathStyle: true, // 对于Cloudflare R2等S3兼容服务很重要
+  });
+}
 
-import { ERROR_NO_PERMISSION } from "@/constants";
-import { noPermission } from "@/features/user";
-import { aliOSS } from "@/lib/ali-oss";
-import { createCuid } from "@/lib/cuid";
-
-const UPLOAD_DIR = "uploads";
-const PUBLIC_DIR = "public";
-
-const getFilePath = (input: string) => {
-  return path.join(process.cwd(), PUBLIC_DIR, input);
-};
-
-const saveFile = async (file: File) => {
-  const fileArrayBuffer = await file.arrayBuffer();
-  const fileExtension = path.extname(file.name);
-  const fileNameWithouExtension = file.name.replace(fileExtension, "");
-  const baseURL = `/${UPLOAD_DIR}/${fileNameWithouExtension}-${createCuid()}${fileExtension}`;
-  const filePath = getFilePath(baseURL);
-
-  fs.writeFileSync(filePath, Buffer.from(fileArrayBuffer));
-
-  return baseURL;
-};
-
-const deleteFile = async (input: string) => {
-  const filePath = getFilePath(input);
-
-  return new Promise((resolve, reject) => {
-    fs.unlink(filePath, (error) => {
-      if (error) {
-        reject(error.message);
+/**
+ * 上传文件到S3
+ * 支持File对象和FormData对象
+ */
+export async function uploadFile(input: File | FormData): Promise<string | { url?: string; error?: string }> {
+  try {
+    let file: File;
+    
+    // 处理不同的输入类型
+    if (input instanceof FormData) {
+      const fileFromFormData = input.get("file") as File;
+      if (!fileFromFormData || !(fileFromFormData instanceof File)) {
+        throw new Error("FormData中未找到有效的文件");
       }
-      resolve("");
+      file = fileFromFormData;
+    } else if (input instanceof File) {
+      file = input;
+    } else {
+      throw new Error("无效的输入类型，期望File或FormData对象");
+    }
+
+    console.log("开始上传文件:", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified
     });
-  });
-};
-
-const getImageInfo = async (filePath: string) => {
-  const buffer = await readChunk(filePath, { length: minimumBytes });
-
-  const typeInfo = await imageType(buffer);
-
-  return {
-    info: typeInfo,
-    isImage: Boolean(typeInfo),
-    isGif: typeInfo ? typeInfo.ext === "gif" : false,
-    isWebp: typeInfo ? typeInfo.ext === "webp" : false,
-  };
-};
-
-// 如果不是图片，原样返回，是图片返回压缩后的图片路径
-const compressImage = async (input: string): Promise<string> => {
-  const inputFilePath = getFilePath(input);
-  const { isGif, isImage, isWebp } = await getImageInfo(inputFilePath);
-
-  if (!isImage || isWebp) {
-    return input;
-  }
-  let animated = false;
-  if (isGif) {
-    animated = true;
-  }
-
-  const fileName = path.basename(inputFilePath);
-  const fileExtension = path.extname(fileName);
-  const fileNameWithouExtension = fileName.replace(fileExtension, "");
-
-  const newFileName = `${fileNameWithouExtension}.webp`;
-  const output = `/${UPLOAD_DIR}/${newFileName}`;
-  const outputFilePath = getFilePath(output);
-
-  return new Promise((resolve, reject) => {
-    // 加载图片
-    sharp(inputFilePath, { animated, limitInputPixels: false })
-      .webp({ lossless: true })
-      .toFile(outputFilePath, (error) => {
-        if (error) {
-          // TODO: 记录日志
-          reject(error.message);
-        } else {
-          resolve(output);
-        }
-      });
-  });
-};
-
-const uploadToOSS = async (input: string) => {
-  const inputFilePath = getFilePath(input);
-  const fileName = path.basename(inputFilePath);
-  const buffer = fs.readFileSync(inputFilePath);
-  const { name } = await aliOSS.put(
-    `${OSS_UPLOAD_DIR}/${fileName}`,
-    Buffer.from(buffer),
-  );
-  let url = aliOSS.generateObjectUrl(name);
-  if (url) {
-    // 阿里云 OSS 上传后返回的链接是默认是http协议的（但实际上它是也支持https），这里手动替换成https
-    // 因为线上环境网站是使用https协议的，网站里面所有的链接/请求都应该走https（最佳实践是这样）
-    // 要不然浏览器搜索栏会有个小感叹号，不太好看
-    url = url.replace(/http:\/\//g, "https://");
-  }
-  return url;
-};
-
-export const uploadFile = async (
-  formData: FormData,
-): Promise<{ error?: string; url?: string }> => {
-  if (await noPermission()) {
-    // throw ERROR_NO_PERMISSION;
-    return { error: ERROR_NO_PERMISSION.message };
-  }
-  // Get file from formData
-  const file = formData.get("file") as File;
-
-  let url = await saveFile(file);
-  const localFileUrl = url;
-  url = await compressImage(url);
-
-  if (isProduction()) {
-    const ossURL = await uploadToOSS(url);
-    // 删除本地的压缩过后的图片文件
-    const result = await deleteFile(url);
-    if (result) {
-      // TODO: 记录日志, 删除文件失败
+    
+    // 验证文件
+    if (!file || file.size === 0) {
+      const error = "文件为空或无效";
+      return input instanceof FormData ? { error } : Promise.reject(new Error(error));
     }
-    return { url: ossURL };
-  }
+    
+    // 处理文件名，如果为空则生成一个默认名称
+    let fileName = file.name;
+    if (!fileName || fileName.trim() === '') {
+      // 根据文件类型生成默认文件名
+      const extension = file.type ? file.type.split('/')[1] ?? 'bin' : 'bin';
+      fileName = `file.${extension}`;
+      console.log("文件名为空，使用默认名称:", fileName);
+    }
+    
+    // 文件大小限制 (50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const error = "文件大小超过50MB限制";
+      return input instanceof FormData ? { error } : Promise.reject(new Error(error));
+    }
+    
+    const s3Client = createS3Client();
+    // 安全处理文件名，替换特殊字符
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const finalFileName = `${Date.now()}-${sanitizedFileName}`;
+    const fileBuffer = await file.arrayBuffer();
 
-  // 如果是图片且已经被压缩过
-  if (localFileUrl !== url) {
-    // 删除旧的图片文件
-    const result = await deleteFile(localFileUrl);
-    if (result) {
-      // TODO: 记录日志, 删除文件失败
+    console.log("准备上传到S3:", {
+      bucket: process.env.AWS_S3_BUCKET_NAME,
+      key: finalFileName,
+      size: fileBuffer.byteLength,
+      contentType: file.type || 'application/octet-stream'
+    });
+
+    const upload = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: process.env.AWS_S3_BUCKET_NAME!,
+        Key: finalFileName,
+        Body: Buffer.from(fileBuffer),
+        ContentType: file.type || 'application/octet-stream',
+      },
+    });
+
+    const result = await upload.done();
+    console.log("上传成功:", result);
+
+    // 返回完整的文件URL
+    const fileUrl = `${process.env.NEXT_PUBLIC_S3_STORAGE_URL}/${finalFileName}`;
+    console.log("文件URL:", fileUrl);
+    
+    // 根据输入类型返回不同格式
+    return input instanceof FormData ? { url: fileUrl } : fileUrl;
+  } catch (error) {
+    console.error("文件上传详细错误:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      inputType: input instanceof FormData ? 'FormData' : input instanceof File ? 'File' : typeof input,
+      env: {
+        hasRegion: !!process.env.AWS_REGION,
+        hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+        hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+        hasBucket: !!process.env.AWS_S3_BUCKET_NAME,
+        hasEndpoint: !!process.env.AWS_S3_ENDPOINT,
+        hasStorageUrl: !!process.env.NEXT_PUBLIC_S3_STORAGE_URL,
+      }
+    });
+    
+    const errorMessage = error instanceof Error ? error.message : "未知错误";
+    
+    if (input instanceof FormData) {
+      return { error: `文件上传失败: ${errorMessage}` };
+    } else {
+      throw new Error(`文件上传失败: ${errorMessage}`);
     }
   }
+}
 
-  return { url };
-};
+/**
+ * 获取预签名上传URL
+ */
+export async function getPresignedUploadUrl(fileName: string, contentType: string): Promise<string> {
+  try {
+    // 验证参数
+    if (!fileName) {
+      throw new Error("文件名不能为空");
+    }
+    
+    const s3Client = createS3Client();
+    // 安全处理文件名，替换特殊字符
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const key = `${Date.now()}-${sanitizedFileName}`;
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET_NAME!,
+      Key: key,
+      ContentType: contentType,
+    });
+
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    return signedUrl;
+  } catch (error) {
+    console.error("获取预签名URL失败:", error);
+    throw new Error(`获取预签名URL失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+}
+
+/**
+ * 批量上传文件
+ */
+export async function uploadFiles(files: File[]): Promise<string[]> {
+  try {
+    if (!files || files.length === 0) {
+      throw new Error("没有文件需要上传");
+    }
+    
+    const uploadPromises = files.map(async (file) => {
+      const result = await uploadFile(file);
+      // 对于File类型输入，uploadFile返回string
+      return result as string;
+    });
+    const urls = await Promise.all(uploadPromises);
+    return urls;
+  } catch (error) {
+    console.error("批量上传失败:", error);
+    throw new Error(`批量上传失败: ${error instanceof Error ? error.message : '未知错误'}`);
+  }
+} 
